@@ -42,6 +42,10 @@ func run(t *sharded.Cluster, typ testTyp) {
 			t.OplogReplay()
 			printDone("Oplog Replay " + stg.name)
 
+			printStart("Oplog Only Replay " + stg.name)
+			t.OplogOnlyReplay()
+			printDone("Oplog Only Replay " + stg.name)
+
 			t.SetBallastData(1e3)
 			flush(t)
 
@@ -72,6 +76,10 @@ func run(t *sharded.Cluster, typ testTyp) {
 	t.OplogReplay()
 	printDone("Oplog Replay FS")
 
+	printStart("Oplog Only Replay FS")
+	t.OplogOnlyReplay()
+	printDone("Oplog Only Replay FS")
+
 	storage = "/etc/pbm/minio.yaml"
 
 	t.ApplyConfig(storage)
@@ -88,6 +96,10 @@ func run(t *sharded.Cluster, typ testTyp) {
 	printStart("Oplog Replay Minio")
 	t.OplogReplay()
 	printDone("Oplog Replay Minio")
+
+	printStart("Oplog Only Replay Minio")
+	t.OplogOnlyReplay()
+	printDone("Oplog Only Replay Minio")
 
 	t.SetBallastData(1e3)
 	flush(t)

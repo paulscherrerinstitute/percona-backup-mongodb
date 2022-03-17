@@ -39,7 +39,7 @@ func (c *Cluster) OplogReplay() {
 	time.Sleep(time.Second * 30)
 	log.Printf("Sleep for %v", time.Second*30)
 
-	log.Println("Get end reference time")
+	log.Println("Get start reference time")
 	firstt := getLastWriteTime(counters)
 
 	bcp2 := c.Backup()
@@ -72,6 +72,64 @@ func (c *Cluster) OplogReplay() {
 
 	// +1 sec since we are PITR restore done up to < time (not <=)
 	c.Restore(bcp2)
+	c.ReplayOplog(
+		time.Unix(int64(firstt.T), 0),
+		time.Unix(int64(lastt.T), 0).Add(time.Second*1))
+
+	for name, shard := range c.shards {
+		c.pitrcCheck(name, shard, &counters[name].cnt.data, lastt)
+	}
+}
+
+func (c *Cluster) OplogOnlyReplay() {
+	c.pitrOn()
+	log.Println("turn on PITR")
+	defer c.pitrOff()
+
+	rand.Seed(time.Now().UnixNano())
+
+	counters := make(map[string]shardCounter)
+	for name, cn := range c.shards {
+		c.bcheckClear(name, cn)
+		pcc := newpcounter(name, cn)
+		ctx, cancel := context.WithCancel(context.TODO())
+		go pcc.write(ctx, time.Millisecond*10*time.Duration(rand.Int63n(49)+1))
+		counters[name] = shardCounter{
+			cnt:    pcc,
+			cancel: cancel,
+		}
+	}
+
+	c.printBcpList()
+
+	log.Println("Get start reference time")
+	firstt := getLastWriteTime(counters)
+
+	ds := time.Second * 30 * time.Duration(rand.Int63n(5)+2)
+	log.Printf("Generating data for %v", ds)
+	time.Sleep(ds)
+
+	c.printBcpList()
+
+	log.Println("Get end reference time")
+	lastt := getLastWriteTime(counters)
+
+	ds = 30 * time.Second
+	log.Printf("Generating data for %v", ds)
+	time.Sleep(ds)
+
+	for _, c := range counters {
+		c.cancel()
+	}
+
+	c.pitrOff()
+
+	for name, shard := range c.shards {
+		c.bcheckClear(name, shard)
+	}
+
+	c.printBcpList()
+
 	c.ReplayOplog(
 		time.Unix(int64(firstt.T), 0),
 		time.Unix(int64(lastt.T), 0).Add(time.Second*1))
