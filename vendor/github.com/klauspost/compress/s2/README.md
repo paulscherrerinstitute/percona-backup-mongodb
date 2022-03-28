@@ -611,6 +611,11 @@ S2 now offers full compatibility with Snappy.
 
 This means that the efficient encoders of S2 can be used to generate fully Snappy compatible output.
 
+There is a [snappy](https://github.com/klauspost/compress/tree/master/snappy) package that can be used by
+simply changing imports from `github.com/golang/snappy` to `github.com/klauspost/compress/snappy`.
+This uses "better" mode for all operations.
+If you would like more control, you can use the s2 package as described below: 
+
 ## Blocks
 
 Snappy compatible blocks can be generated with the S2 encoder. 
@@ -618,26 +623,26 @@ Compression and speed is typically a bit better `MaxEncodedLen` is also smaller 
 
 | Snappy                     | S2 replacement          |
 |----------------------------|-------------------------|
-| snappy.Encode(...)         | s2.EncodeSnappy(...)`   |
+| snappy.Encode(...)         | s2.EncodeSnappy(...)   |
 | snappy.MaxEncodedLen(...)  | s2.MaxEncodedLen(...)   |
 
 `s2.EncodeSnappy` can be replaced with `s2.EncodeSnappyBetter` or `s2.EncodeSnappyBest` to get more efficiently compressed snappy compatible output. 
 
-`s2ConcatBlocks` is compatible with snappy blocks.
+`s2.ConcatBlocks` is compatible with snappy blocks.
 
 Comparison of [`webdevdata.org-2015-01-07-subset`](https://files.klauspost.com/compress/webdevdata.org-2015-01-07-4GB-subset.7z),
 53927 files, total input size: 4,014,735,833 bytes. amd64, single goroutine used:
 
-| Encoder               | Size       | MB/s   |
-|-----------------------|------------|--------|
-| snappy.Encode         | 1128706759 | 725.59 |
-| s2.EncodeSnappy       | 1093823291 | 899.16 |
-| s2.EncodeSnappyBetter | 1001158548 | 578.49 |
-| s2.EncodeSnappyBest   | 944507998  | 66.00  |
+| Encoder               | Size       | MB/s   | Reduction |
+|-----------------------|------------|--------|------------
+| snappy.Encode         | 1128706759 | 725.59 | 71.89%    |
+| s2.EncodeSnappy       | 1093823291 | 899.16 | 72.75%    |
+| s2.EncodeSnappyBetter | 1001158548 | 578.49 | 75.06%    |
+| s2.EncodeSnappyBest   | 944507998  | 66.00  | 76.47%    |
 
 ## Streams
 
-For streams, replace `enc = snappy.NewWriter(w)` with `enc = s2.NewWriter(w, s2.WriterSnappyCompat())`.
+For streams, replace `enc = snappy.NewBufferedWriter(w)` with `enc = s2.NewWriter(w, s2.WriterSnappyCompat())`.
 All other options are available, but note that block size limit is different for snappy.
 
 Comparison of different streams, AMD Ryzen 3950x, 16 cores. Size and throughput: 

@@ -17,7 +17,7 @@ require (
 	github.com/go-ini/ini v1.51.1 // indirect
 	github.com/golang/snappy v0.0.4
 	github.com/google/uuid v1.3.0
-	github.com/klauspost/compress v1.13.1
+	github.com/klauspost/compress v1.13.6
 	github.com/klauspost/pgzip v1.2.3
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -26,7 +26,7 @@ require (
 	github.com/pierrec/lz4 v2.3.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
-	go.mongodb.org/mongo-driver v1.7.0
+	go.mongodb.org/mongo-driver v1.8.4
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97 // indirect
 	golang.org/x/mod v0.4.2
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
