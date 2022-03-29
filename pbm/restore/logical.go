@@ -477,8 +477,8 @@ func (r *Restore) checkSnapshot(bcp *pbm.BackupMeta) error {
 const (
 	preserveUUID = true
 
-	batchSizeDefault           = 500
-	numInsertionWorkersDefault = 10
+	batchSizeDefault           = 100
+	numInsertionWorkersDefault = 5
 )
 
 func (r *Restore) toState(status pbm.Status, wait *time.Duration) error {
