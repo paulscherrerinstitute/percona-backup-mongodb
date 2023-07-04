@@ -14,8 +14,8 @@ import (
 const (
 	preserveUUID = true
 
-	batchSizeDefault           = 50
-	numInsertionWorkersDefault = 3
+	batchSizeDefault           = 25
+	numInsertionWorkersDefault = 2
 )
 
 var ExcludeFromRestore = []string{
