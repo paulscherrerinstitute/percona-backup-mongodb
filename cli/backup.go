@@ -80,6 +80,14 @@ func runBackup(cn *pbm.PBM, b *backupOpts, outf outFormat) (fmt.Stringer, error)
 		return nil, errors.New("--ns flag is only allowed for logical backup")
 	}
 
+	ver, err := pbm.GetMongoVersion(cn.Context(), cn.Conn)
+	if err != nil {
+		return nil, errors.WithMessage(err, "get mongo version")
+	}
+	if err = pbm.FeatureSupport(ver).BackupType(pbm.BackupType(b.typ)); err != nil {
+		return nil, errors.WithMessage(err, "unsupported backup type")
+	}
+
 	if err := checkConcurrentOp(cn); err != nil {
 		// PITR slicing can be run along with the backup start - agents will resolve it.
 		op, ok := err.(concurentOpErr)
@@ -174,6 +182,17 @@ func runBackup(cn *pbm.PBM, b *backupOpts, outf outFormat) (fmt.Stringer, error)
 }
 
 func runFinishBcp(cn *pbm.PBM, bcp string) (fmt.Stringer, error) {
+	meta, err := cn.GetBackupMeta(bcp)
+	if err != nil {
+		if errors.Is(err, pbm.ErrNotFound) {
+			return nil, errors.Errorf("backup %q not found", bcp)
+		}
+		return nil, err
+	}
+	if meta.Status != pbm.StatusCopyReady {
+		return nil, errors.Errorf("expected %q status. got %q", pbm.StatusCopyReady, meta.Status)
+	}
+
 	return outMsg{fmt.Sprintf("Command sent. Check `pbm describe-backup %s` for the result.", bcp)},
 		cn.ChangeBackupState(bcp, pbm.StatusCopyDone, "")
 }
