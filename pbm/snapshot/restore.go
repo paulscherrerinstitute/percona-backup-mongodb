@@ -86,7 +86,7 @@ func NewRestore(uri string, cfg *pbm.Config) (io.ReaderFrom, error) {
 		NumInsertionWorkers:      numInsertionWorkers,
 		NumParallelCollections:   1,
 		PreserveUUID:             preserveUUID,
-		StopOnError:              true,
+		StopOnError:              false,
 		WriteConcern:             "majority",
 		NoIndexRestore:           true,
 	}
