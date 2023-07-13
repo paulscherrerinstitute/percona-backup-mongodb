@@ -14,7 +14,7 @@ import (
 const (
 	preserveUUID = true
 
-	batchSizeDefault           = 10
+	batchSizeDefault           = 5
 	numInsertionWorkersDefault = 1
 )
 
