@@ -1,96 +1,37 @@
-# Percona Backup for MongoDB
-[![Go Report Card](https://goreportcard.com/badge/github.com/percona/percona-backup-mongodb)](https://goreportcard.com/report/github.com/percona/percona-backup-mongodb) [![codecov](https://codecov.io/gh/percona/percona-backup-mongodb/branch/master/graph/badge.svg?token=TiuOmTfp2p)](https://codecov.io/gh/percona/percona-backup-mongodb) [![CLA assistant](https://cla-assistant.percona.com/readme/badge/percona/percona-backup-mongodb)](https://cla-assistant.percona.com/percona/percona-backup-mongodb)
+# PSI git workflow
 
-![PBM logo](doc/source/images/backup-mongo.jpeg)
+This workflow is needed whenever an upgrade of percona is due, which involves a new upstream release of the backup container.
 
-Percona Backup for MongoDB (PBM) is a distributed, low-impact solution for achieving
-consistent backups of MongoDB sharded clusters and replica sets. Percona Backup for MongoDB supports Percona Server for MongoDB and MongoDB Community Edition v4.4 and higher.
+In order to apply the patch on upstream releases, the most convinient workflow is what follows:
 
-For more information about PBM components and how to use it, see
-[Percona Backup for MongoDB documentation](https://docs.percona.com/percona-backup-mongodb/)
+1. checkout to origin main
+```bash
+git checkout main
+```
+2. fetch upstream (if not set `git remote add upstream https://github.com/percona/percona-backup-mongodb.git`)
+```bash
+git fetch upstream
+```
+3. set the TAG_NAME of interest
+```bash
+TAG_NAME=...
+```
+4. rebase tag on origin/main
+```bash
+git rebase <$TAG_NAME>
+```
+5. resolve any possible conflict keeping the origin version for [psi-ci.yaml](.github/workflows/psi-ci.yml), [README.md](./README.md), [restore.go](./pbm/snapshot/restore.go)
+6. force push to origin main
+```bash
+git push origin main --force-with-lease
+```
+7. push the tags
+```bash
+git push --tags
+```
 
-Percona Backup for MongoDB includes the following **features**:
+In this way the patch commits from origin are applied on top of the release, which results in preserving the upstream history.
 
-- Backup and restore for both classic non-sharded replica sets and sharded clusters
-- Point-in-Time recovery
-- Simple command-line management utility
-- Replica set and sharded cluster consistency through oplog capture
-- Distributed transaction consistency with MongoDB 4.2+
-- Simple, integrated-with-MongoDB authentication
-- No need to install a coordination service on a separate server
-- Use of any S3-compatible storage
-- Support of locally-mounted remote filesystem backup servers.
+# Create a release
 
-## Architecture
-
-Percona Backup for MongoDB consists of the following components:
-
-- **pbm-agent** is a process running on every mongod node within the cluster or a replica set that performs backup and restore operations.
-- **pbm** CLI is a command-line utility that instructs pbm-agents to perform an operation.
-- **PBM Control collections** are special collections in MongoDB that store the configuration data and backup states
-- Remote backup storage as either s3-compatible or filesystem type storage
-
-![Architecture](https://github.com/percona/pbm-docs/blob/main/docs/_images/pbm-architecture.png)
-
-[Read more about PBM architecture](https://docs.percona.com/percona-backup-mongodb/details/architecture.html).
-
-## Installation
-
-You can install Percona Backup for MongoDB in the following ways:
-- from Percona repository (recommended)
-- build from source code
-
-Find the installation instructions in the [official documentation](https://docs.percona.com/percona-backup-mongodb/installation.html)
-
-Alternatively, you can [run Percona Backup for MongoDB as a Docker container](https://hub.docker.com/r/percona/percona-backup-mongodb).
-
-## API
-This repository contains source code to build binaries. It is not a library and it is not intended to be used directly by calling exposed functions, types, etc.
-Please, use `pbm` CLI as the publicly available API. See [PBM commands](https://docs.percona.com/percona-backup-mongodb/reference/pbm-commands.html) for reference.
-
-## Submit Bug Report / Feature Request
-
-If you find a bug in Percona Backup for MongoDB, you can submit a report to the project's [JIRA issue tracker](https://jira.percona.com/projects/PBM).
-
-As a general rule of thumb, please try to create bug reports that are:
-
-- Reproducible. Include steps to reproduce the problem.
-- Specific. Include as much detail as possible: which version, what environment, etc.
-- Unique. Do not duplicate existing tickets.
-- Scoped to a Single Bug. One bug per report.
-
-When submitting a bug report or a feature, please attach the following information:
-
-- The output of the [`pbm status`](https://docs.percona.com/percona-backup-mongodb/status.htm) command
-- The output of the [`pbm logs`](https://docs.percona.com/percona-backup-mongodb/running.html#pbm-logs) command. Use the following filters:
-
-   ```sh
-   $ pbm logs -x -s D -t 0
-   ```
-
->**NOTE** : When reporting an issue with a certain event or a node, you can use the following filters to receive a more specific data set:
-
->```bash
->#Logs per node
->$ pbm logs -x -s D -t 0 -n replset/host:27017
->#Logs per event
->$ pbm logs -x -s D -t 0 -e restore/2020-10-06T11:45:14Z
->```
-
-
-## Licensing
-
-Percona is dedicated to **keeping open source open**. Wherever possible, we strive to include permissive licensing for both our software and documentation. For this project, we are using the Apache License 2.0 license.
-
-## How to get involved
-
-We encourage contributions and are always looking for new members that are as dedicated to serving the community as we are.
-
-The [Contributing Guide](https://github.com/percona/percona-backup-mongodb/blob/main/CONTRIBUTING.md) contains the guidelines how you can contribute.
-
-## Contact
-
-You can reach us:
-* on [Forums](https://forums.percona.com)
-* by [Email](mailto:mongodb-backup@percona.com)
-* or [Professional Support](https://www.percona.com/about/contact)
+At this point, since the image is created and pushed on release, create a release and the corresponding tat. The name of the tag should be `$TAG_NAME-patched`.
